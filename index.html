@@ -3,152 +3,309 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Adam Asmaca Pro</title>
+<title>Adam Asmaca</title>
 
 <style>
 body{
   margin:0;
-  font-family:Arial;
-  background: linear-gradient(135deg,#141e30,#243b55);
+  font-family: Arial, sans-serif;
+  background:#111;
   color:white;
-  text-align:center;
+  overflow:hidden;
 }
 
+/* ================= SCREEN ================= */
 .screen{
+  width:100%;
+  height:100vh;
   display:none;
-  padding:20px;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
 }
 
-.active{
-  display:block;
+#startScreen{ display:flex; }
+
+/* ================= TOP / BOTTOM ================= */
+.top{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  text-align:center;
+  font-size:72px;
+  font-style:italic;
+  font-family:"Brush Script MT","Comic Sans MS",cursive;
+  background:linear-gradient(90deg,#00ff88,#00aaff,#a855f7);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  z-index:10;
 }
 
-h1{margin-top:20px;}
+.bottom{
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  text-align:center;
+  font-size:56px;
+  color:#00ff88;
+  font-style:italic;
+  font-family:"Comic Sans MS",cursive;
+}
 
+/* ================= START ================= */
+.center{text-align:center;}
+
+.gameTitle{
+  font-size:72px;
+  font-weight:900;
+  letter-spacing:6px;
+  font-family:"Brush Script MT","Comic Sans MS",cursive;
+  background:linear-gradient(90deg,#00ff88,#00aaff,#a855f7);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:30px;
+}
+
+/* ================= BUTTON ================= */
 button{
-  padding:10px 20px;
-  margin:5px;
+  padding:22px 70px;
+  font-size:30px;
   border:none;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-#startBtn{
-  background:#00c853;
+  border-radius:18px;
+  background:linear-gradient(45deg,#00ff88,#00aaff);
   color:white;
-  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-canvas{
-  background: rgba(255,255,255,0.08);
-  border-radius:12px;
-  margin:10px;
+/* ================= GAME CENTER ================= */
+#gameScreen{
+  display:none;
+  position:relative;
+  height:100vh;
+  width:100%;
+  justify-content:center;
+  align-items:center;
 }
 
+#gameContent{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  transform:translateY(-10px);
+}
+
+/* ================= HANGMAN (BÃœYÃœTÃœLDÃœ) ================= */
+#hangmanArea{
+  position:relative;
+  width:380px;   /* ðŸ”¥ bÃ¼yÃ¼tÃ¼ldÃ¼ */
+  height:340px;  /* ðŸ”¥ bÃ¼yÃ¼tÃ¼ldÃ¼ */
+}
+
+/* ================= SVG ================= */
+.part{
+  opacity:0;
+  transition:0.3s;
+}
+
+.part.show{
+  opacity:1;
+}
+
+/* ================= WORD ================= */
 #word{
-  font-size:32px;
+  font-size:48px;
   letter-spacing:10px;
-  margin:15px;
+  margin:20px;
 }
 
+/* ================= LETTERS (STATÄ°K + SABÄ°T) ================= */
 #letters{
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
-  max-width:600px;
-  margin:auto;
+  max-width:900px;
+  gap:14px;
 }
 
+/* ðŸ”¥ SABÄ°T HARF BUTONLARI (ANÄ°MASYON YOK) */
 .letter{
-  width:40px;
-  margin:4px;
-  padding:10px;
-  background:#ff6b6b;
-  border-radius:8px;
+  width:90px;
+  height:90px;
+  background:#111;
+  border:3px solid purple;
+  color:white;
+  font-size:30px;
+  font-weight:bold;
+  cursor:pointer;
+  border-radius:14px;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  transition:none; /* ðŸ”¥ hareket yok */
+}
+
+.letter:hover{
+  background:purple; /* sadece renk deÄŸiÅŸir */
+  transform:none;     /* hareket yok */
 }
 
 .letter:disabled{
-  background:gray;
+  background:#555;
+  border-color:#333;
 }
 
-#wrong{
-  color:#ffb3b3;
-  margin-top:10px;
-}
-
-#shake{
-  animation: shake 0.3s;
-}
-
-@keyframes shake{
-  0%{transform:translateX(0);}
-  25%{transform:translateX(-5px);}
-  50%{transform:translateX(5px);}
-  75%{transform:translateX(-5px);}
-  100%{transform:translateX(0);}
-}
-
-.win{
-  color:#00ff99;
-  animation: win 1s infinite alternate;
-}
-
-@keyframes win{
-  from{transform:scale(1);}
-  to{transform:scale(1.2);}
+/* ================= INFO ================= */
+#info{
+  font-size:22px;
+  margin:10px;
+  color:#00ff88;
 }
 </style>
 </head>
 
 <body>
 
-<!-- MENÜ -->
-<div id="menu" class="screen active">
-  <h1>🎮 Adam Asmaca Pro</h1>
-  <p>Kelimeyi tahmin et, adamı kurtar!</p>
-  <button id="startBtn" onclick="startGame()">BAŞLA ▶</button>
+<!-- START -->
+<div id="startScreen" class="screen">
+  <div class="top">For Pi Network</div>
+
+  <div class="center">
+    <div class="gameTitle">ADAM ASMACA</div>
+    <button onclick="startGame()">BAÅžLA</button>
+  </div>
+
+  <div class="bottom">Designer : Quido</div>
 </div>
 
-<!-- OYUN -->
-<div id="game" class="screen">
-  <h1>Adam Asmaca</h1>
+<!-- GAME -->
+<div id="gameScreen" class="screen">
 
-  <canvas id="c" width="200" height="200"></canvas>
+  <div class="top">For Pi Network</div>
 
-  <div id="score">🏆 Skor: 0</div>
-  <div id="lives">❤️ Hak: 6</div>
+  <div id="gameContent">
 
-  <div id="word"></div>
-  <div id="letters"></div>
-  <div id="wrong">❌ Yanlış: </div>
-</div>
+    <!-- ================= HANGMAN ================= -->
+    <div id="hangmanArea">
 
-<!-- SON -->
-<div id="end" class="screen">
-  <h1 id="endText"></h1>
-  <button onclick="startGame()">🔄 Tekrar Oyna</button>
+      <svg width="380" height="340">
+
+        <!-- direk -->
+        <line x1="90" y1="320" x2="90" y2="40" stroke="#888" stroke-width="7"/>
+        <!-- Ã¼st -->
+        <line x1="90" y1="40" x2="280" y2="40" stroke="#888" stroke-width="7"/>
+        <!-- ip -->
+        <line x1="280" y1="40" x2="280" y2="100" stroke="#ccc" stroke-width="3"/>
+
+        <!-- kafa -->
+        <circle class="part" cx="280" cy="130" r="26" stroke="white" stroke-width="3" fill="none"/>
+
+        <!-- gÃ¶vde -->
+        <line class="part" x1="280" y1="156" x2="280" y2="240" stroke="white" stroke-width="3"/>
+
+        <!-- kollar -->
+        <line class="part" x1="280" y1="180" x2="240" y2="210" stroke="white" stroke-width="3"/>
+        <line class="part" x1="280" y1="180" x2="320" y2="210" stroke="white" stroke-width="3"/>
+
+        <!-- bacaklar -->
+        <line class="part" x1="280" y1="240" x2="245" y2="290" stroke="white" stroke-width="3"/>
+        <line class="part" x1="280" y1="240" x2="315" y2="290" stroke="white" stroke-width="3"/>
+
+      </svg>
+
+    </div>
+
+    <div id="info">Can: 6</div>
+    <div id="word"></div>
+    <div id="letters"></div>
+
+  </div>
+
+  <div class="bottom">Designer : Quido</div>
 </div>
 
 <script>
-const words = [
-"bilgisayar","telefon","internet","yazilim","javascript",
-"istanbul","ankara","kedi","köpek","araba","kalem","defter",
-"okul","öğretmen","öğrenci","kitap","klavye","fare","ekran"
-];
 
-let word="", guessed=[], wrong=[], lives=6, score=0;
+let wordList=["ANKARA","KARADENIZ","JAVASCRIPT","COMPUTER","TURKIYE"];
+let word="",hidden=[],lives=6;
+let parts,index=0;
 
-const canvas=document.getElementById("c");
-const ctx=canvas.getContext("2d");
-
-function showScreen(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+function startGame(){
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("gameScreen").style.display="flex";
+  initGame();
 }
 
-function draw(step){
-  ctx.strokeStyle="white";
-  ctx.lineWidth=2;
+function initGame(){
+  word = wordList[Math.floor(Math.random()*wordList.length)];
+  hidden = Array(word.length).fill("_");
+  lives = 6;
+  index = 0;
 
-  if(step===1){ctx.beginPath();ctx.moveTo(10,190);ctx
+  parts = document.querySelectorAll(".part");
+  parts.forEach(p=>p.classList.remove("show"));
+
+  document.getElementById("info").innerText="Can: "+lives;
+
+  drawWord();
+  createLetters();
+}
+
+function drawWord(){
+  document.getElementById("word").innerText = hidden.join(" ");
+}
+
+function createLetters(){
+  const letters="ABCÃ‡DEFGÄžHIÄ°JKLMNOÃ–PRSÅžTUÃœVYZ";
+  const container=document.getElementById("letters");
+  container.innerHTML="";
+
+  letters.split("").forEach(l=>{
+    let btn=document.createElement("button");
+    btn.innerText=l;
+    btn.className="letter";
+
+    btn.onclick=()=>{
+      btn.disabled=true;
+      checkLetter(l);
+    };
+
+    container.appendChild(btn);
+  });
+}
+
+function checkLetter(letter){
+  if(word.includes(letter)){
+    for(let i=0;i<word.length;i++){
+      if(word[i]==letter) hidden[i]=letter;
+    }
+    drawWord();
+  }else{
+    lives--;
+    showPart();
+  }
+
+  document.getElementById("info").innerText="Can: "+lives;
+
+  if(lives<=0){
+    alert("Kaybettin! Kelime: "+word);
+    initGame();
+  }
+}
+
+function showPart(){
+  if(index < document.querySelectorAll(".part").length){
+    document.querySelectorAll(".part")[index].classList.add("show");
+    index++;
+  }
+}
+
+</script>
+
+</body>
+</html>
