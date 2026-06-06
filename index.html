@@ -3,29 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Adam Asmaca</title>
+<title>Adam Asmaca Pro</title>
 
 <style>
 body{
   margin:0;
   font-family:Arial;
-  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  background: linear-gradient(135deg,#141e30,#243b55);
   color:white;
   text-align:center;
 }
 
-h1{margin-top:10px;}
+.screen{
+  display:none;
+  padding:20px;
+}
+
+.active{
+  display:block;
+}
+
+h1{margin-top:20px;}
+
+button{
+  padding:10px 20px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+#startBtn{
+  background:#00c853;
+  color:white;
+  font-size:18px;
+}
 
 canvas{
-  background: rgba(255,255,255,0.1);
-  border-radius:10px;
-  margin-top:10px;
+  background: rgba(255,255,255,0.08);
+  border-radius:12px;
+  margin:10px;
 }
 
 #word{
-  font-size:30px;
-  letter-spacing:8px;
-  margin:20px;
+  font-size:32px;
+  letter-spacing:10px;
+  margin:15px;
 }
 
 #letters{
@@ -36,121 +60,95 @@ canvas{
   margin:auto;
 }
 
-button{
+.letter{
+  width:40px;
   margin:4px;
   padding:10px;
-  width:40px;
-  border:none;
-  border-radius:8px;
   background:#ff6b6b;
-  color:white;
-  cursor:pointer;
-  font-weight:bold;
+  border-radius:8px;
 }
 
-button:disabled{
+.letter:disabled{
   background:gray;
 }
 
 #wrong{
-  margin-top:10px;
   color:#ffb3b3;
+  margin-top:10px;
+}
+
+#shake{
+  animation: shake 0.3s;
+}
+
+@keyframes shake{
+  0%{transform:translateX(0);}
+  25%{transform:translateX(-5px);}
+  50%{transform:translateX(5px);}
+  75%{transform:translateX(-5px);}
+  100%{transform:translateX(0);}
+}
+
+.win{
+  color:#00ff99;
+  animation: win 1s infinite alternate;
+}
+
+@keyframes win{
+  from{transform:scale(1);}
+  to{transform:scale(1.2);}
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎮 Adam Asmaca</h1>
+<!-- MENÜ -->
+<div id="menu" class="screen active">
+  <h1>🎮 Adam Asmaca Pro</h1>
+  <p>Kelimeyi tahmin et, adamı kurtar!</p>
+  <button id="startBtn" onclick="startGame()">BAŞLA ▶</button>
+</div>
 
-<canvas id="c" width="200" height="200"></canvas>
+<!-- OYUN -->
+<div id="game" class="screen">
+  <h1>Adam Asmaca</h1>
 
-<div id="word"></div>
-<div id="letters"></div>
-<div id="wrong">❌ Yanlış: </div>
+  <canvas id="c" width="200" height="200"></canvas>
 
-<button onclick="startGame()" style="width:auto;padding:10px 20px;">Yeni Oyun 🔄</button>
+  <div id="score">🏆 Skor: 0</div>
+  <div id="lives">❤️ Hak: 6</div>
+
+  <div id="word"></div>
+  <div id="letters"></div>
+  <div id="wrong">❌ Yanlış: </div>
+</div>
+
+<!-- SON -->
+<div id="end" class="screen">
+  <h1 id="endText"></h1>
+  <button onclick="startGame()">🔄 Tekrar Oyna</button>
+</div>
 
 <script>
-const words = ["javascript","bilgisayar","telefon","istanbul","ankara","internet"];
+const words = [
+"bilgisayar","telefon","internet","yazilim","javascript",
+"istanbul","ankara","kedi","köpek","araba","kalem","defter",
+"okul","öğretmen","öğrenci","kitap","klavye","fare","ekran"
+];
 
-let word="";
-let guessed=[];
-let wrong=[];
-let lives=6;
+let word="", guessed=[], wrong=[], lives=6, score=0;
 
 const canvas=document.getElementById("c");
 const ctx=canvas.getContext("2d");
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
 
 function draw(step){
   ctx.strokeStyle="white";
   ctx.lineWidth=2;
 
-  if(step===1){ctx.beginPath();ctx.moveTo(10,190);ctx.lineTo(190,190);ctx.stroke();}
-  if(step===2){ctx.beginPath();ctx.moveTo(50,190);ctx.lineTo(50,20);ctx.stroke();}
-  if(step===3){ctx.beginPath();ctx.moveTo(50,20);ctx.lineTo(120,20);ctx.stroke();}
-  if(step===4){ctx.beginPath();ctx.moveTo(120,20);ctx.lineTo(120,40);ctx.stroke();}
-  if(step===5){ctx.beginPath();ctx.arc(120,60,20,0,Math.PI*2);ctx.stroke();}
-  if(step===6){ctx.beginPath();ctx.moveTo(120,80);ctx.lineTo(120,130);ctx.stroke();}
-}
-
-function updateWord(){
-  document.getElementById("word").innerText =
-    word.split("").map(l=> guessed.includes(l)?l:"_").join(" ");
-
-  if(word.split("").every(l=>guessed.includes(l))){
-    setTimeout(()=>alert("🎉 Kazandın!"),100);
-  }
-}
-
-function updateLetters(){
-  const box=document.getElementById("letters");
-  box.innerHTML="";
-
-  "abcdefghijklmnopqrstuvwxyz".split("").forEach(l=>{
-    const b=document.createElement("button");
-    b.innerText=l;
-    b.onclick=()=>guess(l);
-    b.disabled=guessed.includes(l)||wrong.includes(l);
-    box.appendChild(b);
-  });
-}
-
-function guess(l){
-  if(word.includes(l)){
-    guessed.push(l);
-  } else {
-    wrong.push(l);
-    lives--;
-    draw(6-lives);
-  }
-
-  document.getElementById("wrong").innerText="❌ Yanlış: "+wrong.join(", ");
-
-  if(lives<=0){
-    setTimeout(()=>alert("💀 Kaybettin! Kelime: "+word),100);
-  }
-
-  updateWord();
-  updateLetters();
-}
-
-function startGame(){
-  ctx.clearRect(0,0,200,200);
-
-  word = words[Math.floor(Math.random()*words.length)];
-  guessed=[];
-  wrong=[];
-  lives=6;
-
-  document.getElementById("wrong").innerText="❌ Yanlış: ";
-
-  updateWord();
-  updateLetters();
-}
-
-startGame();
-</script>
-
-</body>
-</html>
+  if(step===1){ctx.beginPath();ctx.moveTo(10,190);ctx
