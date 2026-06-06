@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adam Asmaca Pro</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+transition:.3s;
+}
+
+.dark{
+background:#121212;
+color:white;
+}
+
+.oyun{
+background:white;
+width:95%;
+max-width:600px;
+padding:20px;
+border-radius:20px;
+text-align:center;
+box-shadow:0 10px 25px rgba(0,0,0,.25);
+}
+
+.dark .oyun{
+background:#222;
+color:white;
+}
+
+#adam{
+font-family:monospace;
+font-size:18px;
+}
+
+#kelime{
+margin:20px 0;
+}
+
+.harfKutusu{
+display:inline-block;
+width:35px;
+height:45px;
+line-height:45px;
+border-bottom:3px solid #333;
+margin:3px;
+font-size:28px;
+font-weight:bold;
+animation:acil .3s ease;
+}
+
+@keyframes acil{
+from{transform:scale(0);opacity:0;}
+to{transform:scale(1);opacity:1;}
+}
+
+button{
+padding:10px;
+margin:3px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+#klavye button{
+width:42px;
+height:42px;
+font-weight:bold;
+}
+
+.kullanildi{
+opacity:.3;
+pointer-events:none;
+}
+
+#sonuc{
+font-size:22px;
+font-weight:bold;
+margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="oyun">
+
+<h1>Adam Asmaca Pro</h1>
+
+<button onclick="temaDegistir()">🌙 Tema</button>
+
+<pre id="adam"></pre>
+
+<div id="kelime"></div>
+
+<p>Kalan Hak: <span id="hak"></span></p>
+
+<p>Puan: <span id="puan"></span></p>
+
+<p>Rekor: <span id="rekor"></span></p>
+
+<button onclick="ipucu()">💡 İpucu (-3)</button>
+
+<div id="klavye"></div>
+
+<p>Yanlış Harfler:</p>
+<p id="yanlis"></p>
+
+<div id="sonuc"></div>
+
+<button onclick="yeniOyun()">🔄 Yeni Oyun</button>
+
+</div>
+
+<script>
+
+const kelimeler=[
+"ELMA","ARMUT","KARPUZ","PORTAKAL","ÇİLEK",
+"ANANAS","MUZ","KEDİ","KÖPEK","ASLAN",
+"FİL","MAYMUN","PENGUEN","KAPLUMBAĞA",
+"TELEFON","BİLGİSAYAR","YAZILIM",
+"KALEM","DEFTER","OKUL","ÖĞRETMEN",
+"OTOBÜS","TREN","UÇAK","GEMİ",
+"FUTBOL","BASKETBOL","VOLEYBOL",
+"HALTER","MÜHENDİS","HASTANE",
+"DOKTOR","PATATES","DOMATES"
+];
+
+const adamlar=[
+` +---+
+ |   |
+     |
+     |
+     |
+     |
+=========`,
+` +---+
+ |   |
+ O   |
+     |
+     |
+     |
+=========`,
+` +---+
+ |   |
+ O   |
+ |   |
+     |
+     |
+=========`,
+` +---+
+ |   |
+ O   |
+/|   |
+     |
+     |
+=========`,
+` +---+
+ |   |
+ O   |
+/|\\  |
+     |
+     |
+=========`,
+` +---+
+ |   |
+ O   |
+/|\\  |
+/    |
+     |
+=========`,
+` +---+
+ |   |
+ O   |
+/|\\  |
+/ \\  |
+     |
+=========`
+];
+
+const harfler="ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+
+let kelime;
+let bulunan;
+let hak;
+let yanlislar;
+
+let puan=0;
+
+let rekor=
+parseInt(localStorage.getItem("rekor"))||0;
+
+document.getElementById("rekor").textContent=rekor;
+
+function klavyeOlustur(){
+
+let alan=document.getElementById("klavye");
+alan.innerHTML="";
+
+harfler.split("").forEach(h=>{
+
+let btn=document.createElement("button");
+
+btn.textContent=h;
+
+btn.onclick=()=>{
+btn.classList.add("kullanildi");
+harfSec(h);
+};
+
+alan.appendChild(btn);
+
+});
+}
+
+function yeniOyun(){
+
+kelime=
+kelimeler[Math.floor(Math.random()*kelimeler.length)];
+
+bulunan=
+Array(kelime.length).fill("_");
+
+hak=6;
+
+yanlislar=[];
+
+document.getElementById("sonuc").textContent="";
+
+klavyeOlustur();
+
+guncelle();
+}
+
+function guncelle(){
+
+document.getElementById("adam").textContent=
+adamlar[6-hak];
+
+document.getElementById("hak").textContent=hak;
+
+document.getElementById("puan").textContent=puan;
+
+document.getElementById("yanlis").textContent=
+yanlislar.join(" ");
+
+let html="";
+
+for(let h of bulunan){
+
+html+=
+`<span class="harfKutusu">${h=="_"?"":h}</span>`;
+
+}
+
+document.getElementById("kelime").innerHTML=html;
+}
+
+function harfSec(harf){
+
+let dogru=false;
+
+for(let i=0;i<kelime.length;i++){
+
+if(kelime[i]===harf){
+
+bulunan[i]=harf;
+
+dogru=true;
+}
+}
+
+if(!dogru){
+
+yanlislar.push(harf);
+
+hak--;
+
+if(navigator.vibrate){
+navigator.vibrate(150);
+}
+}
+
+guncelle();
+
+if(!bulunan.includes("_")){
+
+puan+=10;
+
+if(puan>rekor){
+
+rekor=puan;
+
+localStorage.setItem("rekor",rekor);
+
+document.getElementById("rekor").textContent=rekor;
+}
+
+document.getElementById("sonuc").innerHTML=
+"🎉 Tebrikler!";
+
+if(typeof confetti==="function"){
+confetti({
+particleCount:150,
+spread:100
+});
+}
+}
+
+if(hak<=0){
+
+document.getElementById("sonuc").innerHTML=
+"😢 Kaybettin! Kelime: "+kelime;
+}
+}
+
+function ipucu(){
+
+if(puan>=3){
+
+puan-=3;
+
+let kapali=[];
+
+for(let i=0;i<bulunan.length;i++){
+
+if(bulunan[i]=="_")
+kapali.push(i);
+}
+
+if(kapali.length){
+
+let sec=
+kapali[Math.floor(Math.random()*kapali.length)];
+
+bulunan[sec]=kelime[sec];
+
+guncelle();
+}
+}
+}
+
+function temaDegistir(){
+
+document.body.classList.toggle("dark");
+}
+
+yeniOyun();
+
+</script>
+
+</body>
+</html>
